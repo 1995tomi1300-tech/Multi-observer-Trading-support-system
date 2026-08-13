@@ -1,0 +1,21 @@
+# Generalt grafikon (futasi eredmeny)
+*.png
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Kornyezet
+.env
+
+# Ne keruljon be a repoba: rendszer-dumpok, esemenynaplok, GPU logok
+# (helyi/szemelyes adatokat tartalmazhatnak: gepnev, SID, felhasznalonev, utvonalak)
+*.evtx
+*event*log*
+*nvidia-smi*
+*SMOKE*
+implementation_roadmap*.txt
+SMALL SMOKEProcesses.txt
