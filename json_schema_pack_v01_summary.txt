@@ -1,0 +1,753 @@
+JSON SCHEMA PACK v0.1 — SUMMARY
+Shared-Core Multi-Observer Comparison Framework
+
+============================================================
+DOCUMENT STATUS
+============================================================
+
+Status:
+    JSON Schema Pack v0.1 — summary document
+
+Purpose:
+    This document summarizes the full JSON Schema Pack v0.1 design phase.
+
+    It records:
+        - all schema objects defined in v0.1,
+        - their role in the pipeline,
+        - their audit meaning,
+        - their main forbidden behaviors,
+        - their semantic validation requirements,
+        - and the next implementation step.
+
+Important:
+    This is a summary document.
+    It is not executable code yet.
+    It is not a UI specification.
+    It is not a trading system.
+    It is not a market prediction model.
+
+Core principle:
+    The JSON Schema Pack defines what shape each system object may take.
+    It protects the deterministic core, observer layer, audit layer, and replay layer.
+
+Prototype design principle:
+    Start constrained, audited, and replayable.
+    Introduce freedom only through versioned configuration layers.
+    Never allow unlogged runtime freedom inside the deterministic core.
+
+
+============================================================
+1. HIGH-LEVEL PURPOSE
+============================================================
+
+The JSON Schema Pack v0.1 translates the mathematical and terminological audit
+into concrete structured objects.
+
+The goal is to ensure that every pipeline layer is:
+    - identifiable,
+    - versioned,
+    - source-reconstructable,
+    - config-reconstructable,
+    - immutable after creation,
+    - semantically validatable,
+    - replayable,
+    - and protected against unauthorized role expansion.
+
+The schema pack prevents object-role confusion.
+
+Examples:
+    RawObservation cannot act as Node.
+    Node cannot create Edge.
+    Edge cannot act as Graph.
+    TAR cannot invent new graph structure.
+    DCR cannot be built from TAR.
+    ACS cannot claim market truth.
+    ObserverOutput cannot modify the core.
+    Agreement is not Truth.
+    Divergence is not Failure.
+    ActionabilityStatus is not TradeSignal.
+    BoundaryConditionReport is not RefreshDecision.
+    RefreshDecision is not active-cycle mutation.
+    ReplayPackage is not a new computation.
+
+
+============================================================
+2. CORE VALIDATION PHILOSOPHY
+============================================================
+
+The system uses two validation layers:
+
+1. JSON Schema validation
+    Purpose:
+        Structural validation.
+
+    It checks:
+        - required fields,
+        - field types,
+        - enum values,
+        - allowed object shapes,
+        - basic constraints.
+
+2. Semantic validation
+    Purpose:
+        Mathematical and audit-logical validation.
+
+    It checks:
+        - source object existence,
+        - cycle consistency,
+        - init_version consistency,
+        - set membership rules,
+        - no invented structure,
+        - deterministic config use,
+        - no active-cycle mutation,
+        - replayability,
+        - and object-specific audit rules.
+
+Important:
+    JSON Schema validation is necessary but not sufficient.
+    Semantic validators are required for the real audit logic.
+
+
+============================================================
+3. FULL SCHEMA LIST
+============================================================
+
+01. common_object_envelope.schema.json
+02. market_universe.schema.json
+03. raw_observation.schema.json
+04. filtered_observation.schema.json
+05. node.schema.json
+06. edge.schema.json
+07. graph.schema.json
+08. apb.schema.json
+09. lic.schema.json
+10. tar.schema.json
+11. dcr.schema.json
+12. acs.schema.json
+13. observer_output.schema.json
+14. observer_validation.schema.json
+15. agreement_report.schema.json
+16. divergence_report.schema.json
+17. actionability_status.schema.json
+18. boundary_condition_report.schema.json
+19. refresh_decision.schema.json
+20. audit_log_record.schema.json
+21. replay_package.schema.json
+
+
+============================================================
+4. PIPELINE OVERVIEW
+============================================================
+
+Primary deterministic and audit pipeline:
+
+    MarketUniverse
+    → RawObservation
+    → FilteredObservation
+    → Node
+    → Edge
+    → Graph
+    → APB
+    → LIC
+    → TAR
+    → ACS_TAR
+
+Control branch:
+
+    APB_{k-delta}
+    → DCR
+    → ACS_DCR
+
+Observer branch:
+
+    TAR + DCR
+    → ObserverOutput
+    → ObserverValidation
+    → ComparisonSet
+    → AgreementReport
+    → DivergenceReport
+    → ActionabilityStatus
+
+Boundary / refresh branch:
+
+    Graph / APB / CycleState
+    → BoundaryConditionReport
+    → RefreshDecision
+    → scheduled future InitVersion candidate
+
+Audit / replay branch:
+
+    Any object creation / validation / rejection
+    → AuditLogRecord
+    → ReplayPackage
+
+
+============================================================
+5. OBJECT SUMMARY TABLE
+============================================================
+
+01. COMMON OBJECT ENVELOPE
+    Schema:
+        common_object_envelope.schema.json
+    Purpose:
+        Shared envelope for all system objects.
+    Key fields:
+        object_id, object_type, schema_version, created_at, scoring_cycle_id,
+        init_version, source_refs, config_refs, audit.
+    Main rule:
+        Every object must be identifiable, versioned, traceable, and audit-aware.
+
+02. MARKET UNIVERSE
+    Schema:
+        market_universe.schema.json
+    Purpose:
+        Defines the active asset universe for an init_version.
+    Mathematical basis:
+        U_r = C_fixed union C_rotating,r
+        C_fixed intersection C_rotating,r = empty set
+        |U_r| <= 200
+    Forbidden:
+        Active-cycle universe mutation, observer-driven universe modification,
+        normal refresh modifying fixed core.
+    Semantic validator:
+        validate_market_universe_semantics()
+
+03. RAW OBSERVATION
+    Schema:
+        raw_observation.schema.json
+    Purpose:
+        Captures raw market data for one asset in one scoring cycle.
+    Forbidden:
+        Interpretation, prediction, trade signal, hidden correction of missing data.
+    Semantic validator:
+        validate_raw_observation_semantics()
+
+04. FILTERED OBSERVATION
+    Schema:
+        filtered_observation.schema.json
+    Purpose:
+        Deterministically filters and structures raw observations.
+    Mathematical basis:
+        x_{i,k} = F_h(x_raw_{i,k})
+    Forbidden:
+        Prediction, observer-like interpretation, trade recommendation, hidden data repair.
+    Semantic validator:
+        validate_filtered_observation_semantics()
+
+05. NODE
+    Schema:
+        node.schema.json
+    Purpose:
+        Converts filtered asset data into a graph-level node.
+    Mathematical basis:
+        n_{i,k} = Node(c_i, k, r(k))
+    Forbidden:
+        Creating edges, building graph, observer interpretation, trade signal.
+    Semantic validator:
+        validate_node_semantics()
+
+06. EDGE
+    Schema:
+        edge.schema.json
+    Purpose:
+        Defines a directed, weighted relation between two valid nodes.
+    Mathematical basis:
+        e_{ij,k} = (n_{i,k}, n_{j,k}), i != j
+    Important:
+        Edge-rule coefficients are versioned deterministic rule coefficients,
+        not learned weights.
+    Forbidden:
+        Learned core parameters, runtime-adaptive core weights, observer modification,
+        trade signal.
+    Semantic validator:
+        validate_edge_semantics()
+
+07. GRAPH
+    Schema:
+        graph.schema.json
+    Purpose:
+        Builds the Global Interaction Graph for a scoring cycle.
+    Mathematical basis:
+        G_k = (V_k, E_k, W_k)
+    Forbidden:
+        Observer-generated edges, mixed-cycle graph, modifying graph after APB creation,
+        prediction or trade logic.
+    Semantic validator:
+        validate_graph_semantics()
+
+08. ATOMIC PROJECTION BATCH
+    Schema:
+        apb.schema.json
+    Purpose:
+        Freezes a Graph into an immutable projection batch.
+    Mathematical basis:
+        APB_k = P_v(G_k, r(k), k)
+    Forbidden:
+        Live graph streaming to observers, APB mutation, mixed-cycle APB,
+        observer modification.
+    Semantic validator:
+        validate_apb_semantics()
+
+09. LOCAL INTERACTION CLUSTER
+    Schema:
+        lic.schema.json
+    Purpose:
+        Extracts a local subgraph around a center node.
+    Mathematical basis:
+        LIC_{i,k} = L_v(APB_k, n_{i,k}, BR_v)
+    Forbidden:
+        Adding nodes, adding edges, recomputing weights, global market claims.
+    Semantic validator:
+        validate_lic_semantics()
+
+10. TOPOLOGY-AWARE REPRESENTATION
+    Schema:
+        tar.schema.json
+    Purpose:
+        Converts LIC into an observer-compatible representation.
+    Mathematical basis:
+        TAR_{i,k} = R_v(LIC_{i,k}, APB_k)
+    Forbidden:
+        Pattern claims, market predictions, trade claims, direct DCR comparison,
+        graph modification.
+    Semantic validator:
+        validate_tar_semantics()
+
+11. CYCLE-OFFSET CONTROL REFERENCE
+    Schema:
+        dcr.schema.json
+    Purpose:
+        Creates a pre-representation control reference from an offset APB.
+    Mathematical basis:
+        DCR_{i,k-delta} = B_v(APB_{k-delta}, n_{i,k-delta}, BR_v)
+    Forbidden:
+        DCR from TAR, DCR from ObserverOutput, direct TAR/DCR comparison,
+        trade signal.
+    Semantic validator:
+        validate_dcr_semantics()
+
+12. AUDIT COMPARISON SPACE
+    Schema:
+        acs.schema.json
+    Purpose:
+        Projects TAR, DCR, and later REAL outcome into a common comparison space.
+    Mathematical basis:
+        ACS_TAR = C_v(TAR)
+        ACS_DCR = C_v(DCR)
+        ACS_REAL = C_v(REAL)
+    Terminology:
+        Use ACS projection validity, not generic ACS validity.
+    Meaning:
+        Valid projection means comparison-ready deterministic projection.
+        It does not mean market truth, observer correctness, or actionability.
+    Forbidden:
+        Market truth claims, observer interpretation, actionability status,
+        trade signal, core modification.
+    Semantic validator:
+        validate_acs_semantics()
+
+13. OBSERVER OUTPUT
+    Schema:
+        observer_output.schema.json
+    Purpose:
+        Captures a structured observer response to TAR + DCR.
+    Mathematical basis:
+        O_{m,i,k} = Omega_m(TAR_{i,k}, DCR_{i,k-delta}; Config_m)
+    Terminology preference:
+        For LLM mistakes or invented structures, use neutral terms:
+        observer_error, observer_deviation, schema_violation,
+        source_reference_error, invented_structure_detected,
+        hallucination_flag, validation_failure, review_required.
+        Avoid "adversarial" unless strictly necessary.
+    Forbidden:
+        Trade action, core modification request, market truth claim,
+        invented node/edge, unrestricted free-form observer response.
+    Semantic validator:
+        validate_observer_output_semantics()
+
+14. OBSERVER VALIDATION
+    Schema:
+        observer_validation.schema.json
+    Purpose:
+        Decides whether an ObserverOutput is eligible for ComparisonSet.
+    Mathematical basis:
+        ValidObs(O_{m,i,k}) = V_v(O_{m,i,k}, TAR_{i,k}, DCR_{i,k-delta})
+    Core audit statement:
+        ValidObs(O) != True(O)
+    Forbidden:
+        Equating validation with truth, invalid output entering ComparisonSet,
+        deleting invalid outputs without audit record.
+    Semantic validator:
+        validate_observer_validation_semantics()
+
+15. AGREEMENT REPORT
+    Schema:
+        agreement_report.schema.json
+    Purpose:
+        Measures convergence among valid observer outputs.
+    Mathematical basis:
+        Agreement_{i,k} = A_v(ComparisonSet_{i,k})
+    Core audit statement:
+        Agreement != Truth
+    Forbidden:
+        Truth claim, actionability decision, trade signal, prediction.
+    Semantic validator:
+        validate_agreement_report_semantics()
+
+16. DIVERGENCE REPORT
+    Schema:
+        divergence_report.schema.json
+    Purpose:
+        Measures divergence among valid observer outputs.
+    Mathematical basis:
+        Divergence_{i,k} = D_obs_v(ComparisonSet_{i,k})
+    Core audit statement:
+        Divergence != Failure
+    Forbidden:
+        System failure claim, market prediction, actionability decision, trade signal.
+    Semantic validator:
+        validate_divergence_report_semantics()
+
+17. ACTIONABILITY STATUS
+    Schema:
+        actionability_status.schema.json
+    Purpose:
+        Produces a consistency-based decision-support status.
+    Mathematical basis:
+        Actionability_{i,k} =
+        K_v(Agreement, Divergence, Delta_control, ComparisonSet, RepValidity)
+    Core audit statement:
+        ActionabilityStatus != TradeSignal
+    Important meanings:
+        actionable_candidate != buy
+        weak_actionable_candidate != small buy
+        no_action != sell
+        high_divergence != system failure
+        control_mismatch != market crash
+    Forbidden:
+        Buy/sell/execute, market truth, portfolio recommendation,
+        automatic use without review in v0.1.
+    Semantic validator:
+        validate_actionability_status_semantics()
+
+18. BOUNDARY CONDITION REPORT
+    Schema:
+        boundary_condition_report.schema.json
+    Purpose:
+        Detects refresh-candidate boundary conditions.
+    Mathematical basis:
+        BCM_k = M_v(G_k, G_{k-1}, U_{r(k)}, S_k)
+    Core audit statement:
+        boundary trigger != refresh execution
+    Poisson note:
+        Poisson Event-Count Monitor is a deferred optional upper-layer
+        statistical audit extension. It is not active in v0.1 core.
+    Forbidden:
+        Refresh execution, trade signal, active-cycle mutation,
+        treating trigger as final decision.
+    Semantic validator:
+        validate_boundary_condition_report_semantics()
+
+19. REFRESH DECISION
+    Schema:
+        refresh_decision.schema.json
+    Purpose:
+        Applies Conjunctive Refresh Policy after a boundary trigger.
+    Mathematical basis:
+        RefreshAllowed = b_k AND T_k AND C_k AND P_k AND Q_k AND L_k
+    Core audit statement:
+        refresh decision != active-cycle mutation
+    Forbidden:
+        Active-cycle mutation, fixed-core modification by normal refresh,
+        trade signal, immediate rewrite of active MarketUniverse.
+    Semantic validator:
+        validate_refresh_decision_semantics()
+
+20. AUDIT LOG RECORD
+    Schema:
+        audit_log_record.schema.json
+    Purpose:
+        Logs object creation, validation, rejection, and lifecycle events.
+    Core audit statement:
+        unlogged state transition = invalid system behavior
+    Forbidden:
+        Unlogged state transition, unlogged mutation, trade/execution side effect,
+        deleting invalid outputs without log.
+    Semantic validator:
+        validate_audit_log_record_semantics()
+
+21. REPLAY PACKAGE
+    Schema:
+        replay_package.schema.json
+    Purpose:
+        Packages objects, audit logs, configs, and module sequence for deterministic replay.
+    Core audit statement:
+        ReplayPackage != new computation
+    Forbidden:
+        New API calls during replay, config mutation during replay,
+        new market data ingestion during replay, treating replay as new run.
+    Semantic validator:
+        validate_replay_package_semantics()
+
+
+============================================================
+6. GLOBAL FORBIDDEN CLAIMS
+============================================================
+
+The following claims are forbidden in v0.1 unless explicitly handled by a later,
+separate, clearly marked layer:
+
+    buy
+    sell
+    short
+    execute
+    trade_signal
+    portfolio_recommendation
+    market_truth
+    guaranteed prediction
+    automatic refresh execution
+    active-cycle mutation
+    observer-driven core modification
+    DCR built from TAR
+    direct TAR-DCR comparison
+    unlogged mutation
+    replay using new external data
+
+
+============================================================
+7. KEY AUDIT DISTINCTIONS
+============================================================
+
+The following distinctions must be preserved:
+
+    RawObservation != FilteredObservation
+    FilteredObservation != NodeState
+    Node != Edge
+    Edge != Graph
+    Graph != APB
+    APB != LIC
+    LIC != TAR
+    TAR != DCR
+    TAR != ACS
+    DCR != ACS
+    ACS projection validity != market truth
+    ObserverOutput != CoreTruth
+    ValidObs != True
+    Agreement != Truth
+    Divergence != Failure
+    ActionabilityStatus != TradeSignal
+    BoundaryConditionReport != RefreshDecision
+    RefreshDecision != active-cycle mutation
+    AuditLogRecord != DomainObject
+    ReplayPackage != new computation
+
+
+============================================================
+8. CONFIGURATION FREEDOM VS CORE CONSTRAINT
+============================================================
+
+The system is intentionally strict at the object and audit layers.
+
+Strict layers:
+    - object schemas
+    - source references
+    - config references
+    - cycle consistency
+    - init_version consistency
+    - immutability
+    - replay logs
+    - observer read-only rule
+    - no active-cycle mutation
+
+Freedom remains in versioned configuration layers:
+
+    EdgeRuleConfig_v
+    BoundaryRule_v
+    NodeStateConfig_v
+    ACSProjectionConfig_v
+    ObserverConfig_m
+    ObserverValidationConfig_v
+    AgreementRuleConfig_v
+    DivergenceRuleConfig_v
+    ActionabilityRuleConfig_v
+    BoundaryConditionMonitorConfig_v
+    RefreshPolicyConfig_v
+
+Core principle:
+    Not runtime chaos, but versioned freedom.
+
+Meaning:
+    The deterministic core does not mutate itself during runtime.
+    Research freedom exists through versioned, auditable configurations.
+
+
+============================================================
+9. SEMANTIC VALIDATOR REQUIREMENTS
+============================================================
+
+The Python implementation must include semantic validators for all major objects.
+
+Recommended validator functions:
+
+    validate_market_universe_semantics
+    validate_raw_observation_semantics
+    validate_filtered_observation_semantics
+    validate_node_semantics
+    validate_edge_semantics
+    validate_graph_semantics
+    validate_apb_semantics
+    validate_lic_semantics
+    validate_tar_semantics
+    validate_dcr_semantics
+    validate_acs_semantics
+    validate_observer_output_semantics
+    validate_observer_validation_semantics
+    validate_agreement_report_semantics
+    validate_divergence_report_semantics
+    validate_actionability_status_semantics
+    validate_boundary_condition_report_semantics
+    validate_refresh_decision_semantics
+    validate_audit_log_record_semantics
+    validate_replay_package_semantics
+
+These validators must check:
+    - source object existence,
+    - cycle consistency,
+    - init_version consistency,
+    - config availability,
+    - deterministic rule application,
+    - no invented structure,
+    - no trade/execution content,
+    - no active-cycle mutation,
+    - replay eligibility,
+    - and object-specific mathematical constraints.
+
+
+============================================================
+10. MINIMAL PROTOTYPE IMPLICATION
+============================================================
+
+The first implementation should not include:
+    - real API integration,
+    - LLM observers,
+    - ML observers,
+    - UI,
+    - automatic refresh execution,
+    - portfolio logic,
+    - real-money use,
+    - trading actions.
+
+The first implementation should include:
+    - dummy MarketUniverse,
+    - dummy RawObservations,
+    - deterministic FilteredObservations,
+    - Nodes,
+    - Edges,
+    - Graph,
+    - APB,
+    - LIC,
+    - TAR,
+    - DCR,
+    - ACS_TAR / ACS_DCR,
+    - dummy ObserverOutput,
+    - ObserverValidation,
+    - AgreementReport,
+    - DivergenceReport,
+    - ActionabilityStatus,
+    - BoundaryConditionReport,
+    - RefreshDecision,
+    - AuditLogRecords,
+    - ReplayPackage.
+
+First prototype goal:
+    Run one complete deterministic dummy cycle and replay it from frozen logs.
+
+
+============================================================
+11. NEXT DELIVERABLE
+============================================================
+
+The JSON Schema Pack v0.1 conceptual design is complete.
+
+Next deliverable:
+    Python Project Skeleton v0.1
+
+Recommended skeleton structure:
+
+    project/
+      config/
+      schemas/
+      data/
+        dummy/
+        runs/
+      src/
+        universe/
+        ingestion/
+        filtering/
+        node_state/
+        edge_engine/
+        graph/
+        apb/
+        lic/
+        representation/
+        control/
+        acs/
+        observers/
+        validation/
+        comparison/
+        actionability/
+        boundary/
+        refresh/
+        audit_log/
+        replay/
+      tests/
+      README.md
+
+Next implementation phase:
+    1. Create folder structure.
+    2. Save schema files.
+    3. Define dummy config files.
+    4. Create simple object factories.
+    5. Implement JSON Schema validation.
+    6. Implement semantic validators.
+    7. Build one dummy run.
+    8. Log all objects.
+    9. Build ReplayPackage.
+    10. Replay and compare hashes.
+
+
+============================================================
+12. FINAL SUMMARY
+============================================================
+
+The JSON Schema Pack v0.1 forms the structural and audit backbone of the
+Shared-Core Multi-Observer Comparison Framework.
+
+It converts the theory into a strict but research-flexible object system.
+
+The system is strict where auditability requires strictness:
+    - object types,
+    - source references,
+    - config references,
+    - immutability,
+    - replayability,
+    - observer boundaries,
+    - refresh boundaries,
+    - and actionability boundaries.
+
+The system remains flexible where research requires flexibility:
+    - versioned rule configs,
+    - threshold configs,
+    - component definitions,
+    - observer sets,
+    - ACS feature sets,
+    - boundary rules,
+    - and actionability rules.
+
+Core final principle:
+    The deterministic core is protected.
+    The observer layer is controlled.
+    The audit layer is replayable.
+    The research freedom is versioned.
+
+End of Document.

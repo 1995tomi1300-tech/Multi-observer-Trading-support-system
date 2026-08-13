@@ -1,0 +1,535 @@
+COMPARATIVE EVOLUTION ANALYSIS v0.1
+From Trading Pipeline to Shared-Core Multi-Observer Research Framework
+
+====================================================
+TABLE OF CONTENTS
+====================================================
+
+1. Purpose of This Document
+2. Executive Summary
+3. Original System State
+4. Current System State
+5. Major Evolution Points
+6. Comparative Architecture Table
+7. Research Methodology Evolution
+8. Current Audit Status
+9. Is a New Terminological Audit Required?
+10. Is a New Mathematical Audit Required?
+11. Recommended Next Audit Phases
+12. Current Best System Definition
+13. Final Recommendation
+
+
+====================================================
+1. PURPOSE OF THIS DOCUMENT
+====================================================
+
+This document provides a comparative analysis of how the original trading
+decision-support system evolved into a broader research framework.
+
+The goal is to answer:
+
+1. What has changed?
+2. What has improved?
+3. Which components have become more complex?
+4. Whether a new terminology audit is required.
+5. Whether a new mathematical audit is required.
+6. What should be done before implementation.
+
+This document is intended for internal research planning only.
+
+
+====================================================
+2. EXECUTIVE SUMMARY
+====================================================
+
+The system has evolved significantly.
+
+Original framing:
+    A trading decision-support pipeline.
+
+Current framing:
+    A Shared-Core Multi-Observer Comparison Framework built around a
+    deterministic market-state core, topology-aware representation, bypass
+    control channel, and observer comparison methodology.
+
+The most important shift:
+
+    The project is no longer primarily a trading bot or trading-support tool.
+    It has become a research infrastructure for studying market-state
+    interaction, observer behavior, representation stability, and cross-model
+    interpretation consistency.
+
+Core conclusion:
+
+    A new terminology audit is justified.
+    A new mathematical audit is also justified, but only after the updated
+    architecture is stabilized terminologically.
+
+Recommended sequence:
+
+    1. Terminological Audit v0.2
+    2. Representation & Observability Audit v0.1
+    3. Mathematical Audit v0.2
+    4. Implementation Blueprint v0.1
+
+
+====================================================
+3. ORIGINAL SYSTEM STATE
+====================================================
+
+The original system concept was closer to:
+
+    Trading Decision-Support Pipeline v0.1
+
+Primary goal:
+    Produce structured decision-support signals from market data.
+
+Original core chain:
+
+    Scanner
+    -> Heuristic Filter
+    -> Mathematical Engine
+    -> Structured Output
+    -> LLM Explanation
+    -> Human Review
+    -> Audit Log
+
+Original assumptions:
+
+- one primary pipeline,
+- one mathematical engine,
+- optional LLM explanation,
+- no automatic trading,
+- human review required,
+- audit logging required.
+
+Original focus:
+    Stabilize a formerly over-complex trading bot idea into an auditable
+    decision-support system.
+
+Original major achievement:
+    The system was de-hyped and separated from prediction-oracle thinking.
+
+
+====================================================
+4. CURRENT SYSTEM STATE
+====================================================
+
+The current system is broader and more research-oriented.
+
+Current working name:
+
+    Shared-Core Multi-Observer Comparison Framework
+
+Current conceptual chain:
+
+    Market Universe
+    -> Fixed Core Asset Set + Rotating Peripheral Asset Set
+    -> Scanner
+    -> Heuristic Filter
+    -> Deterministic Core
+    -> State-Wave / Interaction Representation
+    -> Topology-Aware Representation Layer
+    -> Y-Split / Bypass Control Channel
+    -> Multiple Observer Branches
+    -> Observer Output Comparison
+    -> Human Review
+    -> Audit Log
+
+Current architecture contains:
+
+- 50 fixed core assets,
+- up to 150 rotating peripheral assets,
+- deterministic shared core,
+- topology-aware representation layer,
+- local interaction clusters,
+- bypass control channel,
+- delayed control reference,
+- multiple observer branches,
+- observer comparison methodology,
+- conjunctive initialization refresh policy.
+
+Current focus:
+    Study whether topology-aware representations and observer systems expose
+    stable, non-trivial market interaction structures.
+
+
+====================================================
+5. MAJOR EVOLUTION POINTS
+====================================================
+
+1. From trading output to research infrastructure
+-------------------------------------------------
+The system no longer focuses primarily on buy/sell decision support.
+
+It now focuses on:
+
+- representation stability,
+- observer agreement,
+- state-wave interaction patterns,
+- market connectedness,
+- spillover-like dynamics,
+- and validation through shadow-mode testing.
+
+2. From one pipeline to shared-core multi-observer design
+--------------------------------------------------------
+Earlier:
+    one pipeline.
+
+Now:
+    one shared deterministic core,
+    multiple observer branches.
+
+This improves comparability because each observer receives the same core
+representation.
+
+3. From optional topology to conditionally required representation layer
+-----------------------------------------------------------------------
+Earlier:
+    Mobius/topology layer was parked as optional.
+
+Now:
+    topology-aware representation may be required if the goal is observer-side
+    interpretation of complex interaction states.
+
+The topology layer is still not a prediction engine.
+
+It is now understood as:
+    structured representation space for observer-compatible state reading.
+
+4. From LLM explanation to observer research
+-------------------------------------------
+Earlier:
+    LLM only explained structured output.
+
+Now:
+    LLM/ML systems may be tested as non-authoritative observer branches.
+
+Critical rule remains:
+    Observer output is not core truth.
+
+5. From time-based refresh to conjunctive refresh logic
+------------------------------------------------------
+Earlier:
+    initialization refresh frequency was unresolved.
+
+Now:
+    refresh should follow a conjunctive rule structure:
+
+    refresh only if:
+    - minimum time condition is satisfied,
+    - boundary condition trigger is active,
+    - cooldown is inactive,
+    - current scoring cycle is locked/protected,
+    - versioned update can be applied to a later cycle.
+
+6. From small local cluster thinking to market universe sampling
+---------------------------------------------------------------
+Earlier:
+    Local Interaction Cluster risked becoming too small.
+
+Now:
+    market universe is defined as:
+
+    - 50 fixed core assets,
+    - 150 rotating peripheral assets.
+
+Local Interaction Clusters are extracted from a larger global interaction
+structure rather than replacing full-market sampling.
+
+7. From internal intuition to literature alignment
+-------------------------------------------------
+External research themes now include:
+
+- volatility spillovers,
+- return spillovers,
+- connectedness,
+- lead-lag dynamics,
+- Bitcoin dominance,
+- capital rotation,
+- regime-dependent crypto-market behavior,
+- latent manifolds,
+- activation-space geometry,
+- mechanistic interpretability.
+
+
+====================================================
+6. COMPARATIVE ARCHITECTURE TABLE
+====================================================
+
+Area | Earlier Version | Current Version | Status
+-----|-----------------|-----------------|-------
+Main identity | Trading Decision-Support Pipeline | Shared-Core Multi-Observer Comparison Framework | Changed
+Core goal | Decision support | Research infrastructure + decision support | Expanded
+Market scope | Undefined / small cluster | 50 fixed + 150 rotating assets | Expanded
+Math engine | Central scoring layer | Deterministic shared core | Clarified
+Topology layer | Optional / parked | Conditionally required representation layer | Reclassified
+Mobius concept | Mostly metaphor / optional | topology-aware representation candidate | Reframed
+LLM role | Explanation only | optional non-authoritative observer branch | Expanded
+ML role | Not required | conditionally testable observer branch | Expanded
+Observer isolation | Basic idea | bypass + delayed control reference | Strengthened
+Baseline | RSI / MA / random | deterministic-only, no-observer, RSI, MA, random | Expanded
+Refresh logic | unresolved | conjunctive refresh rule structure | Improved
+Audit focus | terminology + math | terminology + representation + observability + math | Expanded
+Validation | shadow week | replay + shadow mode + observer comparison + baseline | Expanded
+
+
+====================================================
+7. RESEARCH METHODOLOGY EVOLUTION
+====================================================
+
+The methodology has evolved from:
+
+    "Can this system help trading decisions?"
+
+to:
+
+    "Can a deterministic core plus topology-aware representation plus multiple
+    observer branches reveal stable, auditable, non-trivial interaction patterns
+    in crypto-market states?"
+
+This is a major scientific shift.
+
+The system is now positioned as an experimental framework capable of producing
+both positive and negative research value.
+
+Positive outcome examples:
+- observer branches converge meaningfully,
+- representation preserves useful structure,
+- state-wave interaction patterns correlate with later market behavior,
+- peripheral activation improves regime detection.
+
+Negative outcome examples:
+- observer outputs diverge randomly,
+- topology representation introduces distortion,
+- influence surrogate fails,
+- deterministic-only baseline performs equally well,
+- no observer provides additional information.
+
+Both positive and negative results may be valuable.
+
+
+====================================================
+8. CURRENT AUDIT STATUS
+====================================================
+
+Completed:
+
+1. Terminological Audit v0.1
+    Status: completed for the earlier architecture.
+
+2. Mathematical Terminology Note v0.1
+    Status: completed for the earlier deterministic state-wave skeleton.
+
+3. Internal Research Note v0.2
+    Status: updated with topology-aware representation and observer layer.
+
+4. Initial literature alignment
+    Status: completed at high level.
+
+Partially completed:
+
+1. Representation & Observability Audit
+    Status: started, not completed.
+
+2. Local Interaction Cluster definition
+    Status: partially stabilized.
+
+3. Market Universe definition
+    Status: partially stabilized.
+
+4. Initialization Refresh Policy
+    Status: conceptually stabilized, not formalized.
+
+Not completed:
+
+1. Terminological Audit v0.2
+2. Mathematical Audit v0.2
+3. Observer Comparison Protocol
+4. JSON Schema v0.1
+5. Implementation Blueprint v0.1
+
+
+====================================================
+9. IS A NEW TERMINOLOGICAL AUDIT REQUIRED?
+====================================================
+
+Yes.
+
+A new terminological audit is justified.
+
+Reason:
+The system changed significantly after Terminological Audit v0.1.
+
+New or changed terms include:
+
+- Shared-Core Multi-Observer Comparison Framework
+- Market Universe
+- Fixed Core Asset Set
+- Rotating Peripheral Asset Set
+- Global Interaction Graph
+- Local Interaction Cluster
+- Topology-Aware Representation Layer
+- Observer Layer
+- Observer Branch
+- Bypass Control Channel
+- Delayed Control Reference
+- Y-Split Control Gate
+- Boundary Condition Monitor
+- Conjunctive Refresh Policy
+- Observer Output Convergence
+- Observer Divergence Score
+- Representation Stability
+- Representation Drift
+- Observer Contamination
+- Control Reference
+
+These were either absent or not fully stabilized in v0.1.
+
+Conclusion:
+
+    Terminological Audit v0.2 is required before final implementation planning.
+
+
+====================================================
+10. IS A NEW MATHEMATICAL AUDIT REQUIRED?
+====================================================
+
+Yes, but not immediately.
+
+The mathematical audit should come AFTER the new terminology audit.
+
+Reason:
+The mathematical model now has new structures:
+
+- 200-asset market universe,
+- fixed vs rotating asset sets,
+- global interaction graph,
+- local cluster extraction,
+- observer comparison metrics,
+- refresh trigger conditions,
+- representation stability measures,
+- bypass/control reference comparison.
+
+These require mathematical formalization.
+
+However:
+Mathematical Audit v0.2 should not begin until the new terminology is stable.
+
+Recommended order:
+
+    1. Terminological Audit v0.2
+    2. Representation & Observability Audit v0.1
+    3. Mathematical Audit v0.2
+
+Potential mathematical objects for v0.2:
+
+- U = market universe
+- C_fixed = fixed core asset set
+- C_rot = rotating peripheral asset set
+- G = global interaction graph
+- LIC_i = local interaction cluster around entity i
+- R_top = topology-aware representation
+- B_ref = bypass control reference
+- O_k = observer branch k
+- A_k = observer output from branch k
+- Agreement(A_1,...,A_m)
+- Divergence(A_1,...,A_m)
+- Drift(R_top, B_ref)
+- RefreshTrigger = conjunctive rule function
+
+
+====================================================
+11. RECOMMENDED NEXT AUDIT PHASES
+====================================================
+
+Recommended next step:
+
+    Terminological Audit v0.2
+
+Suggested components:
+
+1. Market Universe
+2. Fixed Core Asset Set
+3. Rotating Peripheral Asset Set
+4. Global Interaction Graph
+5. Local Interaction Cluster
+6. Topology-Aware Representation Layer
+7. Observer Layer
+8. Observer Branch
+9. Bypass Control Channel
+10. Delayed Control Reference
+11. Boundary Condition Monitor
+12. Conjunctive Refresh Policy
+13. Observer Agreement
+14. Observer Divergence
+15. Representation Drift
+16. Representation Stability
+
+After that:
+
+    Representation & Observability Audit v0.1
+
+Then:
+
+    Mathematical Audit v0.2
+
+Then:
+
+    JSON Schema v0.1
+
+Then:
+
+    Implementation Blueprint v0.1
+
+
+====================================================
+12. CURRENT BEST SYSTEM DEFINITION
+====================================================
+
+The current system can be defined as:
+
+    A shared-core, multi-observer, topology-aware market-state research
+    framework that samples a mixed fixed/rotating crypto-asset universe,
+    computes deterministic interaction representations, projects them into
+    observer-readable state structures, and compares multiple isolated observer
+    branches against delayed control references and baseline outputs under
+    strict audit logging.
+
+Shorter version:
+
+    A Shared-Core Multi-Observer Comparison Framework for auditable
+    topology-aware market-state interaction analysis.
+
+
+====================================================
+13. FINAL RECOMMENDATION
+====================================================
+
+The system has evolved enough that returning to the roots is justified.
+
+Not because the previous audit was wrong, but because the architecture has
+matured beyond it.
+
+Final recommendation:
+
+1. Do not implement yet.
+2. Run Terminological Audit v0.2 first.
+3. Stabilize the new vocabulary.
+4. Complete Representation & Observability Audit v0.1.
+5. Then perform Mathematical Audit v0.2.
+6. Only after that create the implementation blueprint.
+
+This prevents:
+
+- feature creep,
+- terminological drift,
+- mathematical ambiguity,
+- observer contamination,
+- and over-complex first implementation.
+
+The project has now moved from a trading system into a research framework.
+That shift must be reflected in the audits before implementation begins.
+
+End of Document.

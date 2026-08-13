@@ -1,0 +1,1132 @@
+MATHEMATICAL AUDIT v0.2
+Shared-Core Multi-Observer Comparison Framework
+Complete Internal Summary
+
+STATUS
+------
+Mathematical Audit v0.2 is closed as a working version.
+
+This document summarizes the mathematical structure of the framework after the
+completion of the v0.2 audit. It does not define a trading bot, automatic
+executor, guaranteed prediction system, or absolute market-truth engine.
+
+Core statement:
+The system computes cycle-bound, versioned, auditable representation and
+observer-consistency states. These states may support a decision-support status,
+but they are not automatic trading instructions.
+
+====================================================
+1. CORE PRINCIPLES
+====================================================
+
+P1. Cycle-bound reasoning:
+    The system is organized by scoring cycles, not continuous physical time.
+
+P2. Versioned initialization:
+    The Market Universe belongs to an initialization version.
+
+P3. No active-cycle mutation:
+    The active scoring cycle cannot be modified once created.
+
+P4. Deterministic core:
+    The core uses versioned deterministic rules and configuration constants.
+
+P5. No learned parameters in the deterministic core:
+    Component weights and thresholds are rule-config constants, not ML-trained
+    parameters.
+
+P6. Observer read-only:
+    Observer branches cannot modify TAR, DCR, APB, LIC, G, or U.
+
+P7. Representation is not prediction:
+    TAR is a representation object, not a forecast.
+
+P8. Agreement is not truth:
+    Observer agreement indicates convergence, not correctness.
+
+P9. Divergence is not failure:
+    Observer divergence indicates interpretive separation, not system failure.
+
+P10. Actionability is not a trade signal:
+    Actionability is a consistency-based decision-support status.
+
+P11. Validation is not correctness:
+    Validation checks audit eligibility, not factual truth.
+
+P12. ACS-based comparison:
+    TAR, DCR, and REAL outcomes are compared only after projection into the
+    shared Audit Comparison Space.
+
+====================================================
+2. NOTATION
+====================================================
+
+i      = asset / node index
+k      = scoring cycle index
+r      = initialization version index
+delta  = scoring-cycle offset for control reference
+lambda = scoring-cycle offset for later real market outcome evaluation
+
+c_i       = i-th asset
+n_{i,k}  = node representation of asset c_i during scoring cycle k
+U_r       = Market Universe under initialization version r
+C_fixed   = Fixed Core Asset Set
+C_rotating,r = Rotating Peripheral Asset Set under initialization version r
+
+V_k = node set during scoring cycle k
+E^{possible}_k = full possible directed edge set
+E^{retained}_k or E_k = retained / represented directed edge set
+G_k = Global Interaction Graph during scoring cycle k
+APB_k = Atomic Projection Batch during scoring cycle k
+LIC_{i,k} = Local Interaction Cluster around node i during cycle k
+TAR_{i,k} = Topology-Aware Representation object
+DCR_{i,k-delta} = Cycle-Offset Control Reference
+ACS = Audit Comparison Space
+O_{m,i,k} = output of observer m for node i during scoring cycle k
+SOOS_v = Structured Observer Output Schema, version v
+
+====================================================
+3. BLOCK 01 — SETS, INDICES, AND VERSIONED MARKET UNIVERSE
+====================================================
+
+Fixed Core Asset Set:
+    C_fixed = {c_1, c_2, ..., c_50}
+    |C_fixed| approx 50
+
+Rotating Peripheral Asset Set:
+    C_rotating,r = {p_1, p_2, ..., p_m}
+    m <= 150
+
+Market Universe:
+    U_r = C_fixed union C_rotating,r
+
+Scoring-cycle reference:
+    U_k = U_{r(k)}
+
+where:
+    r(k) = active initialization version during scoring cycle k
+
+Disjoint set condition:
+    C_fixed intersection C_rotating,r = empty set
+
+Equivalent membership rule:
+    if c_i in C_fixed, then c_i not in C_rotating,r
+    if c_i in C_rotating,r, then c_i not in C_fixed
+
+Size constraint:
+    |U_r| <= 200
+
+Membership function:
+    M_r(c_i) in {fixed_core, rotating_peripheral, excluded}
+
+Market Universe validity:
+    ValidUniverse(U_r)
+        iff |C_fixed| approx 50
+        AND |C_rotating,r| <= 150
+        AND C_fixed intersection C_rotating,r = empty set
+        AND |U_r| <= 200
+        AND every c_i in U_r has a valid asset identifier
+        AND U_r is tied to exactly one InitVersion_r
+        AND U_r is immutable during active scoring cycles
+
+====================================================
+4. BLOCK 02 — NODE STATE AND ASSET ATTRIBUTES
+====================================================
+
+Asset-to-node mapping:
+    c_i in U_{r(k)} -> n_{i,k} = Node(c_i, k, r(k))
+
+Important distinction:
+    c_i != n_{i,k}
+
+Node identity:
+    id(n_{i,k}) = id(c_i)
+
+Identity is stable:
+    id(n_{i,k}) = id(n_{i,k+1})
+
+Node state is cycle-dependent:
+    state(n_{i,k}) may differ from state(n_{i,k+1})
+
+Node state vector:
+    s_{i,k} = (p_{i,k}, m_{i,k}, d_{i,k}, q_{i,k})
+
+where:
+    p_{i,k} = price-velocity component
+    m_{i,k} = moving-average component
+    d_{i,k} = state-density / information-density component
+    q_{i,k} = data-quality / completeness component
+
+Filtered observation:
+    x^{raw}_{i,k} = raw observation
+    x_{i,k} = filtered observation
+    x_{i,k} = F_h(x^{raw}_{i,k})
+    s_{i,k} = S(x_{i,k})
+
+Important:
+    F_h is not a truth function.
+    It is a deterministic filtering / structuring function.
+
+Node influence surrogate:
+    w_{i,k} = I_s(s_{i,k}, r(k))
+
+Important:
+    w_{i,k} is not physical mass.
+    It is a cycle-bound influence surrogate.
+
+Node validity:
+    ValidNode(n_{i,k})
+        iff c_i in U_{r(k)}
+        AND s_{i,k} is defined
+        AND q_{i,k} is defined
+
+Node object:
+    n_{i,k} =
+    (
+      id(c_i),
+      M_{r(k)}(c_i),
+      s_{i,k},
+      w_{i,k},
+      q_{i,k}
+    )
+
+Audit rule:
+    InvalidNode(n_{i,k}) implies n_{i,k} not in V_k
+
+====================================================
+5. BLOCK 03 — GLOBAL INTERACTION GRAPH
+====================================================
+
+Global Interaction Graph:
+    G_k = (V_k, E_k, W_k)
+
+Node set:
+    V_k = { n_{i,k} | c_i in U_{r(k)} AND ValidNode(n_{i,k}) }
+
+Possible directed edge:
+    e_{ij,k} = (n_{i,k}, n_{j,k}), i != j
+
+Directionality:
+    e_{ij,k} != e_{ji,k}
+
+Full possible directed edge space:
+    E^{possible}_k =
+    { (n_{i,k}, n_{j,k}) |
+      n_{i,k}, n_{j,k} in V_k
+      AND i != j
+    }
+
+If |V_k| = 200:
+    |E^{possible}_k| = 200 * 199 = 39,800
+
+Corrected edge distinction:
+    possible edge != retained edge
+
+If both nodes are valid, a possible edge exists.
+However, the edge may not be retained in the representation graph.
+
+Retained edge set:
+    E^{retained}_k subset of E^{possible}_k
+
+Edge-weight function:
+    W_k : E_k -> [0,1]
+
+Specific edge weight:
+    w^{edge}_{ij,k} = W_k(e_{ij,k})
+
+Important distinction:
+    w_{i,k} = node influence surrogate
+    w^{edge}_{ij,k} = edge interaction weight
+
+Therefore:
+    node weight != edge weight
+
+Adjacency matrix:
+    A_k in R^{N_k x N_k}
+    N_k = |V_k|
+    (A_k)_{ij} = w^{edge}_{ij,k} if retained edge i -> j exists
+    (A_k)_{ij} = 0 if no retained edge
+    (A_k)_{ii} = 0 in v0.2
+
+Graph validity:
+    ValidGraph(G_k)
+        iff V_k is not empty
+        AND every node in V_k is valid
+        AND every edge in E_k connects two nodes in V_k
+        AND no self-edge exists
+        AND W_k(e_{ij,k}) is defined for each retained edge
+        AND G_k is tied to exactly one scoring_cycle_id
+        AND G_k is tied to exactly one init_version
+        AND G_k is immutable during cycle k
+
+====================================================
+6. BLOCK 04 — WEIGHTED DIRECTED EDGE / INTERACTION WEIGHT
+====================================================
+
+Edge:
+    e_{ij,k} = (n_{i,k}, n_{j,k}), i != j
+
+Edge weight:
+    w^{edge}_{ij,k}
+        =
+    Phi_v(s_{i,k}, s_{j,k}, w_{i,k}, w_{j,k}, q_{i,k}, q_{j,k})
+
+where:
+    Phi_v = versioned deterministic interaction estimator
+
+Important correction:
+    No learned parameters are used in the deterministic core.
+
+Component skeleton:
+    w^{edge}_{ij,k}
+        =
+    N_v(
+      a_v I_{ij,k}
+      + b_v A_{ij,k}
+      + c_v C_{ij,k}
+      + d_v Q_{ij,k}
+    )
+
+where:
+    I_{ij,k} = influence relation component
+    A_{ij,k} = state alignment component
+    C_{ij,k} = state-change / propagation component
+    Q_{ij,k} = data quality component
+
+and:
+    a_v, b_v, c_v, d_v >= 0
+    a_v + b_v + c_v + d_v = 1
+
+Important:
+    a_v, b_v, c_v, d_v are not learned parameters.
+    They are fixed, version-controlled deterministic rule coefficients inside
+    RuleConfig_v.
+
+Deterministic rule:
+    same input + same RuleConfig_v -> same edge weight
+
+Directionality:
+    w^{edge}_{ij,k} != w^{edge}_{ji,k}
+
+Edge confidence:
+    conf^{edge}_{ij,k}
+
+Important distinction:
+    edge strength != edge reliability
+
+Valid edge condition:
+    ValidEdge(e_{ij,k})
+        iff ValidNode(n_{i,k})
+        AND ValidNode(n_{j,k})
+        AND i != j
+        AND q_{i,k} >= q_min
+        AND q_{j,k} >= q_min
+        AND conf^{edge}_{ij,k} >= conf_min
+
+Retained edge set:
+    E_k = { e_{ij,k} in E^{possible}_k | ValidEdge(e_{ij,k}) }
+
+or after thresholding:
+    E_k =
+    { e_{ij,k} |
+      w^{edge}_{ij,k} >= theta_edge
+      AND conf^{edge}_{ij,k} >= theta_conf
+    }
+
+Important correction:
+    If a node is invalid, possible edges involving that node do not exist.
+    If both nodes are valid, possible edges exist, but they may not be retained.
+
+Three-level edge model:
+    1. Valid Node Space
+    2. Possible Edge Space
+    3. Retained Representation Graph
+
+====================================================
+7. BLOCK 05 — ATOMIC PROJECTION BATCH
+====================================================
+
+Starting point:
+    G_k = (V_k, E_k, W_k)
+
+Atomic Projection Batch:
+    APB_k = P_v(G_k, r(k), k)
+
+where:
+    P_v = versioned deterministic projection packaging function
+    G_k = current Global Interaction Graph
+    r(k) = active initialization version
+    k = scoring cycle
+
+Important:
+    P_v does not learn.
+    P_v does not interpret.
+    P_v packages, freezes, and makes the graph state referenceable.
+
+APB content:
+    APB_k =
+    (
+      graph_id(G_k),
+      r(k),
+      k,
+      V_k,
+      E_k,
+      W_k,
+      RuleConfig_v,
+      ProjectionConfig_v,
+      integrity_k
+    )
+
+Atomicity:
+    APB_k cannot mix G_k and G_{k+1}
+
+Rule:
+    No mixed-cycle observer input.
+
+Immutable after creation:
+    Created(APB_k) implies Immutable(APB_k)
+
+Valid APB:
+    ValidAPB(APB_k)
+        iff ValidGraph(G_k)
+        AND single_init_version(APB_k)
+        AND single_scoring_cycle(APB_k)
+        AND graph_snapshot_complete(APB_k)
+        AND immutable_after_creation(APB_k)
+
+Relationship to LIC:
+    LIC_{i,k} = L_v(APB_k, n_{i,k}, BoundaryRule_v)
+
+Relationship to TAR:
+    TAR_{i,k} = R_v(LIC_{i,k})
+
+Audit chain:
+    ObserverOutput -> TAR -> LIC -> APB -> G -> U
+
+====================================================
+8. BLOCK 06 — LOCAL INTERACTION CLUSTER AS SUBGRAPH
+====================================================
+
+Local Interaction Cluster:
+    LIC_{i,k} = L_v(APB_k, n_{i,k}, BR_v)
+
+where:
+    L_v = versioned deterministic cluster extraction function
+    BR_v = Boundary Rule / Cluster Boundary rule version
+
+Reproducibility:
+    same APB_k + same center node + same BR_v -> same LIC_{i,k}
+
+LIC as subgraph:
+    LIC_{i,k} = (V^{LIC}_{i,k}, E^{LIC}_{i,k}, W^{LIC}_{i,k})
+
+where:
+    V^{LIC}_{i,k} subset of V_k
+    E^{LIC}_{i,k} subset of E_k
+    W^{LIC}_{i,k} = W_k restricted to E^{LIC}_{i,k}
+
+Therefore:
+    LIC_{i,k} subset of G_k
+    LIC_{i,k} != G_k
+
+Center node condition:
+    n_{i,k} in V^{LIC}_{i,k}
+
+Neighbor set:
+    N^{LIC}_{i,k} subset of V_k without {n_{i,k}}
+
+Node set:
+    V^{LIC}_{i,k} = {n_{i,k}} union N^{LIC}_{i,k}
+
+Edge extraction:
+    E^{LIC}_{i,k} =
+    { e_{ab,k} in E_k |
+      n_{a,k}, n_{b,k} in V^{LIC}_{i,k}
+      AND BR_v(e_{ab,k}) = true
+    }
+
+Hybrid Boundary Rule:
+    e_{ij,k} in E^{LIC}_{i,k}
+
+if:
+    w^{edge}_{ij,k} >= theta_edge
+    AND conf^{edge}_{ij,k} >= theta_conf
+    AND rank_i(e_{ij,k}) <= N_max
+
+Important:
+    theta_edge, theta_conf, N_max are not learned parameters.
+    They are deterministic constants in BoundaryRule_v.
+
+Cluster size:
+    |N^{LIC}_{i,k}| <= N_max
+    |V^{LIC}_{i,k}| <= N_max + 1
+
+LIC weight function:
+    W^{LIC}_{i,k} = W_k restricted to E^{LIC}_{i,k}
+
+Important:
+    LIC does not recompute edge weights.
+    LIC cuts out edges and preserves source weights.
+
+Valid LIC:
+    ValidLIC(LIC_{i,k})
+        iff ValidAPB(APB_k)
+        AND n_{i,k} in V_k
+        AND n_{i,k} in V^{LIC}_{i,k}
+        AND V^{LIC}_{i,k} subset of V_k
+        AND E^{LIC}_{i,k} subset of E_k
+        AND W^{LIC}_{i,k} = W_k restricted to E^{LIC}_{i,k}
+        AND BoundaryRule_v applied deterministically
+
+Important:
+    LIC is a local subgraph, not the full market state.
+
+====================================================
+9. BLOCK 07 — TOPOLOGY-AWARE REPRESENTATION TRANSFORMATION
+====================================================
+
+TAR:
+    TAR_{i,k} = R_v(LIC_{i,k}, APB_k)
+
+where:
+    R_v = versioned deterministic representation transformation function
+
+Important:
+    same LIC_{i,k} + same APB_k + same R_v -> same TAR_{i,k}
+
+TAR is not a new graph:
+    TAR_{i,k} != G_k
+    TAR_{i,k} != LIC_{i,k}
+
+TAR is a representation of the LIC, not a recomputation.
+
+Source fidelity condition:
+    for every content item x in TAR_{i,k}:
+        source(x) in {LIC_{i,k}, APB_k, metadata}
+
+TAR structure:
+    TAR_{i,k}
+        =
+    (
+      n_{i,k},
+      V^{LIC}_{i,k},
+      E^{LIC}_{i,k},
+      W^{LIC}_{i,k},
+      mu_{i,k},
+      rho_{i,k},
+      A^{audit}_{i,k}
+    )
+
+where:
+    mu_{i,k} = cluster metrics
+    rho_{i,k} = representation metrics
+    A^{audit}_{i,k} = audit metadata
+
+Important correction about edge absence:
+    no_retained_edges = true
+
+does not mean no possible interaction exists. It means no edge was retained
+under the current representation / boundary rule.
+
+Representation confidence:
+    conf^{rep}_{i,k} in [0,1]
+
+Important:
+    conf^{rep}_{i,k} != observer confidence
+
+Source fidelity:
+    fid^{source}_{i,k} in [0,1]
+
+TAR immutable after creation:
+    Created(TAR_{i,k}) implies Immutable(TAR_{i,k})
+
+Valid TAR:
+    ValidTAR(TAR_{i,k})
+        iff ValidLIC(LIC_{i,k})
+        AND ValidAPB(APB_k)
+        AND source(TAR_{i,k}) = LIC_{i,k}
+        AND source_APB(TAR_{i,k}) = APB_k
+        AND R_v applied deterministically
+        AND immutable_after_creation(TAR_{i,k})
+        AND no_new_nodes(TAR_{i,k})
+        AND no_new_edges(TAR_{i,k})
+
+Important:
+    TAR is representation, not prediction.
+
+====================================================
+10. BLOCK 08 — CYCLE-OFFSET CONTROL REFERENCE / DCR
+====================================================
+
+DCR:
+    DCR_{i,k-delta}
+
+where:
+    delta >= 0
+
+Important clarification:
+    delta is a scoring-cycle offset, not physical time delay.
+
+DCR definition:
+    DCR_{i,k-delta} = B_v(APB_{k-delta}, LIC_{i,k-delta})
+
+or:
+    DCR_{i,k-delta} = B_v(APB_{k-delta}, n_{i,k-delta}, BR_v)
+
+where:
+    B_v = versioned deterministic bypass/control reference extraction function
+
+Important:
+    DCR does not come from TAR.
+    DCR comes from pre-representation APB/LIC-side state.
+
+DCR is:
+    state-space control sampling point
+
+DCR is not:
+    prediction
+    observer output
+    trade signal
+    topology-aware representation
+
+DCR validity:
+    ValidDCR(DCR_{i,k-delta})
+        iff ValidAPB(APB_{k-delta})
+        AND source_before_TAR_layer(DCR)
+        AND same_center_node_reference
+        AND immutable_after_creation(DCR)
+        AND cycle_offset_defined
+        AND source_reconstructable(DCR)
+
+One DCR must come from one APB:
+    source(DCR_{i,k-delta}) = APB_{k-delta}
+
+No mixed-cycle DCR is allowed.
+
+====================================================
+11. CRITICAL CORRECTION — AUDIT COMPARISON SPACE
+====================================================
+
+Logical issue identified:
+    TAR is a post-topology-aware representation object.
+    DCR is a pre-representation control sampling point.
+
+Therefore:
+    TAR and DCR are not directly comparable.
+
+Invalid direct comparison:
+    Delta = D(TAR, DCR)
+
+Correction:
+    TAR, DCR, and later REAL market outcomes must first be projected into a
+    shared Audit Comparison Space.
+
+Audit Comparison Space:
+    ACS
+
+Definition:
+    The Audit Comparison Space is a shared deterministic comparison
+    representation space into which TAR objects, DCR objects, and later real
+    market outcomes can be projected so that they become auditably comparable.
+
+Projection function:
+    C_v = deterministic comparison projection function
+
+TAR projection:
+    ACS^{TAR}_{i,k} = C_v(TAR_{i,k})
+
+DCR projection:
+    ACS^{DCR}_{i,k-delta} = C_v(DCR_{i,k-delta})
+
+Real market outcome projection:
+    ACS^{REAL}_{i,k+lambda} = C_v(REAL_{i,k+lambda})
+
+Corrected control delta:
+    Delta^{control}_{i,k,delta}
+        =
+    D_v(ACS^{TAR}_{i,k}, ACS^{DCR}_{i,k-delta})
+
+Corrected real outcome delta:
+    Delta^{real}_{i,k,lambda}
+        =
+    D_v(ACS^{TAR}_{i,k}, ACS^{REAL}_{i,k+lambda})
+
+Important:
+    Validity, deviation, and alignment are assessed inside the shared Audit
+    Comparison Space, not through direct TAR-DCR comparison.
+
+Terminological correction:
+    DCR is a pre-representation control sampling point that becomes comparable
+    to a TAR object only after both are projected into the shared Audit
+    Comparison Space.
+
+Updated validation triangle:
+
+            ACS^{REAL}
+               ^
+               |
+    ACS^{TAR} <-> ACS^{DCR}
+
+====================================================
+12. BLOCK 09 — OBSERVER BRANCH AS OUTPUT FUNCTION
+====================================================
+
+Observer input:
+    Input_{m,i,k} = (TAR_{i,k}, DCR_{i,k-delta})
+
+Observer function:
+    O_{m,i,k} =
+    Omega_m(TAR_{i,k}, DCR_{i,k-delta}; Config_m)
+
+Observer types may include:
+    heuristic observer
+    ML observer
+    LLM observer
+    no-observer baseline
+
+Observer set:
+    ObserverSet = {Omega_1, Omega_2, ..., Omega_M}
+
+The observer layer may be non-deterministic, especially if LLM-based.
+
+Required logging:
+    input
+    observer config
+    model/version
+    prompt/schema version
+    decoding settings
+    output
+
+Structured Observer Output:
+    O_{m,i,k} in SOOS_v
+
+where:
+    SOOS_v = Structured Observer Output Schema, version v
+
+Important:
+    O_{m,i,k} != CoreTruth
+    O_{m,i,k} != TradeSignal
+
+Observer read-only rule:
+    Omega_m : (TAR, DCR) -> O
+
+Not:
+    Omega_m : (TAR, DCR) -> modified(TAR, DCR, G, APB)
+
+Observer cannot modify:
+    TAR, DCR, APB, LIC, G_k, U_r
+
+Observer output validation:
+    ValidObs(O_{m,i,k})
+        =
+    V_v(O_{m,i,k}, TAR_{i,k}, DCR_{i,k-delta})
+
+Important:
+    ValidObs(O) != True(O)
+
+Invalid output:
+    if ValidObs(O_{m,i,k}) = false,
+    then O_{m,i,k} not in ComparisonSet_{i,k}
+
+Invalid outputs are logged for research and audit review.
+
+====================================================
+13. BLOCK 10 — OBSERVER AGREEMENT AND DIVERGENCE METRICS
+====================================================
+
+ComparisonSet:
+    ComparisonSet_{i,k}
+        =
+    { O_{m,i,k} | ValidObs(O_{m,i,k}) = true }
+
+Minimum condition:
+    |ComparisonSet_{i,k}| >= 2
+
+Agreement:
+    Agreement_{i,k} = A_v(ComparisonSet_{i,k})
+
+Divergence:
+    Divergence_{i,k} = D^{obs}_v(ComparisonSet_{i,k})
+
+Important:
+    Agreement != truth
+    Divergence != failure
+
+Structured Agreement:
+    Agreement_{i,k}
+        =
+    (
+      A^{schema}_{i,k},
+      A^{pattern}_{i,k},
+      A^{direction}_{i,k},
+      A^{confidence}_{i,k},
+      A^{dcr}_{i,k}
+    )
+
+Structured Divergence:
+    Divergence_{i,k}
+        =
+    (
+      D^{pattern}_{i,k},
+      D^{direction}_{i,k},
+      D^{confidence}_{i,k},
+      D^{dcr}_{i,k},
+      D^{semantic}_{i,k}
+    )
+
+Pattern Agreement:
+    A^{pattern}_{i,k}
+        =
+    count(outputs with mode_pattern) / |ComparisonSet_{i,k}|
+
+Confidence dispersion:
+    sigma^{conf}_{i,k}
+        =
+    std({conf_{m,i,k} | O_{m,i,k} in ComparisonSet_{i,k}})
+
+Confidence alignment:
+    A^{confidence}_{i,k} = 1 - sigma^{conf}_{i,k}
+
+provided confidence is normalized to [0,1].
+
+Important:
+    confidence alignment != correctness
+
+DCR consistency agreement:
+    A^{dcr}_{i,k}
+        =
+    count(outputs with mode_tar_dcr_consistency) / |ComparisonSet_{i,k}|
+
+Important distinction:
+    observer DCR consistency judgment != ACS control delta
+
+Overall Agreement Score:
+    OverallAgreement_{i,k}
+        =
+    H_v(A^{pattern}, A^{direction}, A^{confidence}, A^{dcr})
+
+Overall Divergence Score:
+    OverallDivergence_{i,k}
+        =
+    J_v(D^{pattern}, D^{direction}, D^{confidence}, D^{dcr})
+
+Important:
+    H_v and J_v use fixed rule coefficients, not learned parameters.
+
+Relationship to ACS:
+    Agreement / Divergence = observer-output comparison
+    ACS delta = representation/control/real-state comparison
+
+====================================================
+14. BLOCK 11 — BOUNDARY CONDITION MONITOR AND CONJUNCTIVE REFRESH POLICY
+====================================================
+
+Boundary Condition Monitor:
+    BCM_k = M_v(G_k, G_{k-1}, U_{r(k)}, S_k)
+
+where:
+    M_v = versioned deterministic monitor function
+
+The monitor does not refresh.
+It only produces refresh-candidate information.
+
+Boundary trigger:
+    b_k in {0,1}
+
+where:
+    b_k = 1 means a refresh-candidate condition was detected
+
+Important:
+    b_k = 1 does not mean refresh execution
+
+Trigger strength:
+    tau_k in [0,1]
+
+Trigger reasons:
+    R^{BCM}_k = {reason_1, reason_2, ..., reason_l}
+
+Possible reasons:
+    graph_drift_above_threshold
+    peripheral_activation
+    data_completeness_warning
+    cluster_boundary_instability
+    core_periphery_shift
+
+Conjunctive Refresh Policy:
+    RefreshAllowed_k =
+    b_k
+    AND T_k
+    AND C_k
+    AND P_k
+    AND Q_k
+    AND L_k
+
+where:
+    b_k = boundary_condition_trigger
+    T_k = minimum_time_condition
+    C_k = cooldown_inactive
+    P_k = current_cycle_protected
+    Q_k = data_completeness_valid
+    L_k = refresh_lock_inactive
+
+Minimum time condition:
+    T_k = 1 if k - last_refresh_cycle >= K_min
+
+K_min is not learned.
+It is part of RefreshPolicyConfig_v.
+
+Current cycle protection:
+    P_k = 1 means the active scoring cycle cannot be mutated.
+
+If refresh is accepted:
+    U_{r(k)} remains active during cycle k
+    InitVersion_{r+1} is scheduled for a later cycle
+
+New universe:
+    U_{r+1} = C_fixed union C_rotating,r+1
+
+Normal refresh affects:
+    C_rotating,r -> C_rotating,r+1
+
+Normal refresh does not modify:
+    C_fixed
+
+Fixed Core revision is separate:
+    CoreRevisionEvent
+
+Observer output cannot directly trigger refresh.
+
+Important distinction:
+    Actionability Gate = decision-support status
+    Conjunctive Refresh Policy = initialization refresh decision
+
+They are separate layers.
+
+====================================================
+15. BLOCK 12 — ACTIONABILITY GATE
+====================================================
+
+Actionability Gate formalizes decision-support status.
+
+The system does not speak in absolutes.
+It reports consistency, inconsistency, review need, or non-actionability.
+
+Actionability:
+    Actionability_{i,k}
+        =
+    K_v(
+      Agreement_{i,k},
+      Divergence_{i,k},
+      Delta^{control}_{i,k,delta},
+      ComparisonSet_{i,k},
+      RepValidity_{i,k}
+    )
+
+where:
+    K_v = versioned deterministic actionability gate function
+
+Important:
+    K_v is not an ML model.
+    K_v is not an observer.
+    K_v is not a learned function.
+    K_v is not a trade executor.
+
+Possible statuses:
+    ActionabilityStatus_{i,k} in {
+      actionable_candidate,
+      weak_actionable_candidate,
+      no_action,
+      insufficient_agreement,
+      high_divergence,
+      invalid_observer_set,
+      invalid_representation,
+      control_mismatch,
+      requires_review
+    }
+
+Important:
+    actionable_candidate != buy
+    no_action != negative market prediction
+
+No-action state:
+    ActionabilityStatus_{i,k} = no_action
+
+means:
+    there is not enough consistent support to treat the state as an active
+    decision-support candidate.
+
+It does not mean:
+    the market will fall
+    the asset is bad
+    a sell action is required
+
+Example rule skeleton:
+    if ValidTAR(TAR_{i,k}) = false:
+        status = invalid_representation
+    elif |ComparisonSet_{i,k}| < N_min:
+        status = invalid_observer_set
+    elif Delta^{control}_{i,k,delta} > theta_C:
+        status = control_mismatch
+    elif Agreement_{i,k} < theta_A:
+        status = insufficient_agreement
+    elif Divergence_{i,k} > theta_D:
+        status = high_divergence
+    else:
+        status = actionable_candidate
+
+where:
+    theta_A, theta_D, theta_C, N_min are deterministic constants in
+    ActionabilityRuleConfig_v.
+
+Relationship to real market outcome:
+    Delta^{real}_{i,k,lambda}
+        =
+    D_v(ACS^{TAR}_{i,k}, ACS^{REAL}_{i,k+lambda})
+
+Delta^{real} is not available live.
+It is used later in shadow-mode audit.
+
+Important final statement:
+    ActionabilityStatus is not a trade signal.
+    It is a consistency-based decision-support status.
+
+====================================================
+16. BLOCK 13 — FINAL MATHEMATICAL CONSISTENCY AND NON-CIRCULARITY AUDIT
+====================================================
+
+Full deterministic branch:
+    U_r
+        -> V_k
+        -> E^{possible}_k
+        -> E^{retained}_k
+        -> G_k
+        -> APB_k
+        -> LIC_{i,k}
+        -> TAR_{i,k}
+        -> ACS^{TAR}_{i,k}
+
+Control branch:
+    APB_{k-delta}
+        -> DCR_{i,k-delta}
+        -> ACS^{DCR}_{i,k-delta}
+
+Outcome branch:
+    REAL_{i,k+lambda}
+        -> ACS^{REAL}_{i,k+lambda}
+
+Observer / actionability branch:
+    TAR_{i,k}, DCR_{i,k-delta}
+        -> O_{m,i,k}
+        -> ValidObs
+        -> ComparisonSet_{i,k}
+        -> Agreement_{i,k}, Divergence_{i,k}
+        -> ActionabilityStatus_{i,k}
+
+Refresh branch:
+    G_k, G_{k-1}, U_{r(k)}, S_k
+        -> BCM_k
+        -> CRP_k
+        -> possible InitVersion_{r+1}
+
+Object-order checks:
+1. U_r does not depend on G, TAR, ObserverOutput, or Actionability.
+2. V_k depends on U_r and valid node states.
+3. E^{possible}_k depends on V_k.
+4. E^{retained}_k depends on possible edges and deterministic edge rules.
+5. G_k depends on V_k, E_k, and W_k.
+6. APB_k depends on G_k and freezes it.
+7. LIC depends on APB_k and boundary rule.
+8. TAR depends on LIC and APB.
+9. DCR depends on APB offset and pre-representation source.
+10. ACS depends on TAR, DCR, or REAL, but does not create them.
+11. Observer output depends on TAR and DCR, but cannot modify them.
+12. Agreement/Divergence depends on valid observer outputs.
+13. Actionability depends on Agreement/Divergence and control delta.
+14. Refresh policy does not mutate the active cycle.
+
+Circularity check results:
+    ACS does not create TAR.
+    ACS does not create DCR.
+    ACS does not create REAL.
+    ACS does not modify G, APB, LIC, TAR, or DCR.
+    Observer output does not modify TAR, DCR, APB, LIC, G, or U.
+    Refresh logic does not mutate active scoring cycles.
+    No later layer is required to define an earlier layer.
+
+Conclusion:
+    The system is not circular.
+
+====================================================
+17. OPEN IMPLEMENTATION PARAMETERS
+====================================================
+
+The following remain open for later implementation:
+
+1. Exact Phi_v edge-weight formula
+2. Exact I, A, C, Q component definitions
+3. Exact node-state vector components
+4. Exact data-quality metric q_{i,k}
+5. Exact edge-confidence formula
+6. BoundaryRule_v thresholds:
+       theta_edge
+       theta_conf
+       N_max
+7. Representation confidence formula
+8. Source fidelity formula
+9. ACS projection feature list
+10. ACS comparison function D_v
+11. Agreement/Divergence aggregation rules H_v and J_v
+12. ActionabilityRuleConfig_v thresholds:
+       theta_A
+       theta_D
+       theta_C
+       N_min
+13. BCM trigger metrics and thresholds
+14. RefreshPolicyConfig_v:
+       K_min
+       cooldown
+       refresh lock behavior
+15. Shadow-mode outcome offset lambda
+16. JSON schemas for:
+       node
+       edge
+       graph
+       APB
+       LIC
+       TAR
+       DCR
+       ACS
+       ObserverOutput
+       ActionabilityStatus
+
+These are implementation details, not fundamental contradictions.
+
+====================================================
+18. FINAL CONCLUSION
+====================================================
+
+The Mathematical Audit v0.2 is closed as a working version.
+
+The framework is mathematically coherent under the following final statement:
+
+    The system does not claim absolute market truth.
+    It computes cycle-bound, versioned, auditable representation and
+    observer-consistency states.
+    These states can support a decision-support status, but they do not
+    constitute automatic trading instructions.
+
+Final audit statement:
+
+    In a given scoring cycle, under a given initialization version and
+    deterministic rule configuration, the system computes whether the
+    represented market-state structure, observer outputs, and control
+    references show sufficient consistency or inconsistency for further
+    decision-support interpretation.
+
+Simplified final sentence:
+
+    The system does not say: "This is certainly true."
+    It says: "Under these rules, in this cycle, this state is this consistent
+    or inconsistent."
+
+End of Document.
