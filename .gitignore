@@ -1,0 +1,13 @@
+# Generalt grafikon (futasi eredmeny)
+btc_denom_backtest.png
+*.png
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Kornyezet
+.env
